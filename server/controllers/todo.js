@@ -1,14 +1,25 @@
-const { Mongoose } = require("mongoose")
 const { TodoModel } = require("../models/Todo")
 
 
 /**
  * GET /api/todos
  * Get all todos
+ * 
+ * GET /api/todos?filter=true&completed=flag
+ * @param {query: {filter: true, completed: Boolean}}
+ * Get all todos
  */
 exports.getTodos = (req, res, next) => {
-  TodoModel.find({}).then(todos => res.json(todos))
+  const { completed, filter } = req.query
+  const config = {}
+  if (filter) {
+    config.completed = completed
+  }
+  TodoModel.find(config)
+    .then(todos => res.json(todos))
+    .catch(err => res.status(404).json(err.message))
 }
+
 
 /**
  * POST /api/todos
@@ -17,28 +28,51 @@ exports.getTodos = (req, res, next) => {
  */
 exports.createTodo = async (req, res, next) => {
   const { title } = req.body
-  const todo = new TodoModel({
-    title: title,
-    completed: false
-  })
-  todo.save()
-    .then(todo => {
-      res.status(201).json('Todo is created!')
+  if (!req.query.hasOwnProperty("completed")) {
+    const todo = new TodoModel({
+      title: title,
+      completed: false
     })
-    .catch(console.log)
+    todo.save()
+      .then(todo => {
+        res.status(201).json('Todo is created!')
+      })
+      .catch(console.log)
+  } else {
+    next()
+  }
 }
 
+
+/**
+ * POST /api/todos?completed=flag
+ * Create todo
+ * @param {query: {completed: Boolean}} req
+ */
+exports.updateAllTodo = async (req, res, next) => {
+  const { completed } = req.query
+  if (req.query.hasOwnProperty("completed")) {
+    TodoModel.updateMany({}, { completed }, (err) => {
+      if (err) {
+        return res.status(402).json(err.message)
+      }
+      return res.status(202).json({ uptadedTodos: true, completed: completed})
+    })
+  } else {
+    next()
+  }
+}
 
 
 /**
  * POST /api/todos/:id?edit=true
  * Edit todo
- * @param {body: {title: String, completed:Boolean}} req
  * @param {query: {edit: Boolean }} req
+ * @param {body: {title: String, completed:Boolean}} req
  * 
  * POST 
  * Delet todo /api/todos/:id?del=true
- * @param {query: {del:Boolean}} req
+ * @param {query: {del: Boolean}} req
  */
 exports.updateTodo = (req, res, next) => {
   const { edit, del } = req.query
@@ -50,9 +84,9 @@ exports.updateTodo = (req, res, next) => {
       { title: title, completed: completed },
       (err, result) => {
         if (err) {
-          throw Error(err.message)
+          return res.status(402).json(err.message)
         } else {
-          res.status(201).json(`Todo is updated!`)
+          return res.status(201).json(`Todo is updated!`)
         }
       })
   }
@@ -60,11 +94,10 @@ exports.updateTodo = (req, res, next) => {
   if (del) {
     TodoModel.deleteOne(_id, (err) => {
       if (err) {
-        res.status(400).json(err.message)
+        return res.status(402).json(err.message)
       } else {
-        res.status(202).json('todo is deleted')
+        return res.status(202).json('todo is deleted')
       }
     })
   }
-
 }

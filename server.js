@@ -16,8 +16,9 @@ app.use('/api/todos', todoRouter)
 
 const startServer = () => {
   const port = env.get('PORT').default('5000').asPortNumber()
-  app.listen(port)
-  console.log(`Server running at: http://localhost:${port}/`)
+  app.listen(port, () => {
+    console.log(`Server running at: http://localhost:${port}/`)
+  })
 }
 
 const connectDb = () => {
@@ -25,7 +26,7 @@ const connectDb = () => {
   mongoose.connect(`mongodb+srv://admin:${password}@cluster0-maihb.mongodb.net/db?retryWrites=true&w=majority`, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useFindAndModify: true 
+    useFindAndModify: false
   })
   return mongoose.connection
 }
