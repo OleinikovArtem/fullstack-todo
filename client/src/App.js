@@ -1,9 +1,10 @@
-import React from 'react'
+import React, { Component } from 'react'
 import { Footer } from './components/Footer/'
 import Header from './components/Header/'
 import Main from './components/Main/'
+// import {fetchAllTodos, fetchCreateTodo, fetchDeleteTodo} from './util/Api'
 
-function App() {
+const App = () => {
   return (
     <section className='todoapp'>
       <Header />
@@ -11,6 +12,7 @@ function App() {
       <Footer />
     </section>
   )
+
 }
 
 export default App

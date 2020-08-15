@@ -1,14 +1,20 @@
-import React, { useState } from 'react'
+import React, { useReducer, useState } from 'react'
+import { initialState, reducer } from '../../reducers'
+import { addTodoError, addTodoRequest, addTodoSuccess } from '../../reducers/actions'
+import { fetchCreateTodo } from '../../util/Api'
 
 
 const Header = () => {
   const [value, setValeu] = useState('')
-
+  const [state, dispatch] = useReducer(reducer, initialState)
 
   const changeValue = ({ target: { value } }) => setValeu(value)
-  const addTodo = ({ keyCode }) => {
+  const handleAddTodo = ({ keyCode }) => {
     if (keyCode === 13 && value) {
-      // ....
+      dispatch(addTodoRequest())
+      fetchCreateTodo(value)
+        .then(res => dispatch(addTodoSuccess()))
+        .catch(err => dispatch(addTodoError(err)))
       setValeu('')
     }
   }
@@ -21,7 +27,7 @@ const Header = () => {
         placeholder="What needs to be done?"
         value={value}
         onChange={e => changeValue(e)}
-        onKeyUp={addTodo}
+        onKeyUp={handleAddTodo}
       />
     </header>
   )
